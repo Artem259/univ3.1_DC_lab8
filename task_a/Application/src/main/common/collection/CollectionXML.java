@@ -1,9 +1,13 @@
-package main.common;
+package main.common.collection;
 
-import org.w3c.dom.*;
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import main.common.Album;
+import main.common.Singer;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -11,173 +15,31 @@ import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.util.List;
 
-public class Collection {
-    private final List<Singer> singers;
-    private final List<Album> albums;
+public class CollectionXML {
+    private final Collection collection;
+    private final File dtdFile;
 
-    public Collection() {
-        singers = new ArrayList<>();
-        albums = new ArrayList<>();
+    public CollectionXML(File dtdFile) {
+        this.collection = new Collection();
+        this.dtdFile = dtdFile;
     }
 
-    private Integer indexOfSingerById(int id) {
-        for (int i=0; i<singers.size(); i++) {
-            if (singers.get(i).getId() == id) {
-                return i;
-            }
-        }
-        return null;
+    public CollectionXML(Collection collection, File dtdFile) {
+        this.collection = collection;
+        this.dtdFile = dtdFile;
     }
 
-    private Integer indexOfAlbumById(int id) {
-        for (int i=0; i<albums.size(); i++) {
-            if (albums.get(i).getId() == id) {
-                return i;
-            }
-        }
-        return null;
+    public Collection getCollection() {
+        return collection;
     }
 
-    private List<Integer> sortedIndicesOfAlbumsOfSingerById(int id) {
-        List<Integer> res = new ArrayList<>();
-        for (int i=albums.size()-1; i>=0; i--) {
-            if (albums.get(i).getSinger().getId() == id) {
-                res.add(i);
-            }
-        }
-        return res;
-    }
-
-    public void clear() {
-        singers.clear();
-        albums.clear();
-    }
-
-    // 5
-    public Singer getSingerById(int id) {
-        Integer i = indexOfSingerById(id);
-        if (i == null) {
-            return null;
-        }
-        return singers.get(i);
-    }
-
-    public Album getAlbumById(int id) {
-        Integer i = indexOfAlbumById(id);
-        if (i == null) {
-            return null;
-        }
-        return albums.get(i);
-    }
-
-    public Integer getNextSingerId() {
-        int res = 0;
-        for (Singer singer : singers) {
-            res = Math.max(res, singer.getId());
-        }
-        return res + 1;
-    }
-
-    public Integer getNextAlbumId() {
-        int res = 0;
-        for (Album album : albums) {
-            res = Math.max(res, album.getId());
-        }
-        return res + 1;
-    }
-
-    // 1
-    public void addSinger(Singer singer) {
-        if (indexOfSingerById(singer.getId()) != null) {
-            throw new IllegalArgumentException();
-        }
-        singers.add(singer);
-    }
-
-    // 2
-    public boolean deleteSingerById(int id) {
-        Integer i = indexOfSingerById(id);
-        if (i != null) {
-            singers.remove(i.intValue());
-            List<Integer> indices = sortedIndicesOfAlbumsOfSingerById(id);
-            for (Integer index : indices) {
-                albums.remove(index.intValue());
-            }
-            return true;
-        }
-        return false;
-    }
-
-    // 3
-    public void addAlbum(Album album) {
-        if (indexOfSingerById(album.getSinger().getId()) == null) {
-            throw new IllegalArgumentException();
-        }
-        if (indexOfAlbumById(album.getId()) != null) {
-            throw new IllegalArgumentException();
-        }
-        albums.add(album);
-    }
-
-    // 4
-    public boolean deleteAlbumById(int id) {
-        Integer i = indexOfAlbumById(id);
-        if (i != null) {
-            albums.remove(i.intValue());
-            return true;
-        }
-        return false;
-    }
-
-    // 6
-    public Integer countAlbumsOfSingerById(int id) {
-        if (indexOfSingerById(id) == null) {
-            return null;
-        }
-        List<Integer> indices = sortedIndicesOfAlbumsOfSingerById(id);
-        return indices.size();
-    }
-
-    // 7
-    public List<Album> getAlbumsCopy() {
-        return new ArrayList<>(albums);
-    }
-
-    // 8
-    public List<Album> getAlbumsOfSingerById(int id) {
-        Integer i = indexOfSingerById(id);
-        if (i == null) {
-            return null;
-        }
-        List<Album> list = getSortedAlbums().get(i);
-        return new ArrayList<>(list);
-    }
-
-    // 9
-    public List<Singer> getSingersCopy() {
-        return new ArrayList<>(singers);
-    }
-
-    public List<List<Album>> getSortedAlbums() {
-        List<List<Album>> res = new ArrayList<>();
-        for (int i=0; i<singers.size(); i++) {
-            res.add(new ArrayList<>());
-        }
-        for (Album album : albums) {
-            Integer index = indexOfSingerById(album.getSinger().getId());
-            if (index == null) {
-                throw new RuntimeException();
-            }
-            res.get(index).add(album);
-        }
-        return res;
-    }
-
-    public String toXmlString(File dtdFile) {
+    public String toXmlString() {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         Document doc = null;
         try {
@@ -187,12 +49,12 @@ public class Collection {
             e.printStackTrace();
         }
         assert doc != null;
-        List<List<Album>> sortedAlbums = getSortedAlbums();
+        List<List<Album>> sortedAlbums = collection.getSortedAlbums();
 
         Element collectionElem = doc.createElement("collection");
         doc.appendChild(collectionElem);
-        for (int i=0; i<singers.size(); i++) {
-            Singer singer = singers.get(i);
+        for (int i=0; i<collection.singers.size(); i++) {
+            Singer singer = collection.singers.get(i);
             Element singerElem = doc.createElement("singer");
             singerElem.setAttribute("id", singer.getId().toString());
             singerElem.setAttribute("name", singer.getName());
@@ -221,10 +83,10 @@ public class Collection {
         return sw.toString();
     }
 
-    public String toXmlFormattedString(File dtdFile) {
+    public String toXmlFormattedString() {
         StringWriter sw = new StringWriter();
         try {
-            String str = toXmlString(dtdFile);
+            String str = toXmlString();
             TransformerFactory factory = TransformerFactory.newInstance();
             Transformer transformer = factory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -237,9 +99,9 @@ public class Collection {
         return sw.toString();
     }
 
-    public void toXmlFile(File xmlFile, File dtdFile) {
+    public void toXmlFile(File xmlFile) {
         try {
-            String str = toXmlString(dtdFile);
+            String str = toXmlString();
             TransformerFactory factory = TransformerFactory.newInstance();
             Transformer transformer = factory.newTransformer();
             Source strSource = new StreamSource(new StringReader(str));
@@ -251,7 +113,7 @@ public class Collection {
     }
 
     public void fromXmlFile(File xmlFile) {
-        clear();
+        collection.clear();
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setValidating(true);
         Document doc = null;
@@ -289,7 +151,7 @@ public class Collection {
             Integer singerId = Integer.valueOf(singerElem.getAttribute("id"));
             String singerName = singerElem.getAttribute("name");
             Singer singer = new Singer(singerId, singerName);
-            addSinger(singer);
+            collection.addSinger(singer);
             NodeList albumsList = singerElem.getElementsByTagName("album");
             for (int j=0; j<albumsList.getLength(); j++) {
                 Element albumElem = (Element) albumsList.item(j);
@@ -298,8 +160,13 @@ public class Collection {
                 Integer albumYear = Integer.valueOf(albumElem.getAttribute("year"));
                 String albumGenre = albumElem.getAttribute("genre");
                 Album album = new Album(albumId, singer, albumName, albumYear, albumGenre);
-                addAlbum(album);
+                collection.addAlbum(album);
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return toXmlString();
     }
 }
