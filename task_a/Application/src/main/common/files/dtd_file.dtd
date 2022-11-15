@@ -1,0 +1,12 @@
+<!ELEMENT collection (singer*)>
+<!ELEMENT singer (album*)>
+<!ELEMENT album EMPTY>
+
+<!ATTLIST singer
+        name CDATA #REQUIRED
+        id CDATA #REQUIRED>
+<!ATTLIST album
+        name CDATA #REQUIRED
+        id CDATA #REQUIRED
+        year CDATA #REQUIRED
+        genre CDATA #REQUIRED>
