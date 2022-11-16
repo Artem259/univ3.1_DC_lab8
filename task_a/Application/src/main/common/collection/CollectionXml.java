@@ -21,18 +21,15 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.List;
 
-public class CollectionXML {
+public class CollectionXml {
     private final Collection collection;
-    private final File dtdFile;
 
-    public CollectionXML(File dtdFile) {
+    public CollectionXml() {
         this.collection = new Collection();
-        this.dtdFile = dtdFile;
     }
 
-    public CollectionXML(Collection collection, File dtdFile) {
+    public CollectionXml(Collection collection) {
         this.collection = collection;
-        this.dtdFile = dtdFile;
     }
 
     public Collection getCollection() {
@@ -74,7 +71,6 @@ public class CollectionXML {
         try {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, dtdFile.getAbsolutePath());
             transformer.transform(new DOMSource(doc), new StreamResult(sw));
         } catch (TransformerException e) {
             e.printStackTrace();
@@ -115,26 +111,9 @@ public class CollectionXML {
     public void fromXmlFile(File xmlFile) {
         collection.clear();
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setValidating(true);
         Document doc = null;
         try {
             DocumentBuilder db = dbf.newDocumentBuilder();
-            db.setErrorHandler(new ErrorHandler() {
-                @Override
-                public void warning(SAXParseException exception) {
-                    System.out.println("Warning! " + exception.getMessage() + " Line: " + exception.getLineNumber());
-                }
-
-                @Override
-                public void error(SAXParseException exception) {
-                    System.out.println("Error! " + exception.getMessage() + " Line: " + exception.getLineNumber());
-                }
-
-                @Override
-                public void fatalError(SAXParseException exception) {
-                    System.out.println("Fatal error! " + exception.getMessage() + " Line: " + exception.getLineNumber());
-                }
-            });
             doc = db.parse(xmlFile);
         } catch (ParserConfigurationException | SAXException | IOException e) {
             e.printStackTrace();
