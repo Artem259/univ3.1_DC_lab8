@@ -1,6 +1,7 @@
 package main.server;
 
 import main.common.*;
+import main.common.collection.Collection;
 
 import java.sql.*;
 import java.util.List;
