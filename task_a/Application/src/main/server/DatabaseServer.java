@@ -13,7 +13,7 @@ public class DatabaseServer implements Database {
         this.connection = connection;
     }
 
-    private int execAdd(String sql) {
+    private Integer execAdd(String sql) {
         try {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.executeUpdate();
@@ -22,7 +22,7 @@ public class DatabaseServer implements Database {
             return rs.getInt(1);
         } catch (SQLException e) {
             e.printStackTrace();
-            return -1;
+            return null;
         }
     }
 
@@ -43,6 +43,7 @@ public class DatabaseServer implements Database {
         return execUpdateDelete(sql);
     }
 
+    // Operation code: 1
     @Override
     public Singer getSingerById(int id) {
         String sql = "SELECT * FROM singer WHERE id = " + id;
@@ -64,6 +65,7 @@ public class DatabaseServer implements Database {
         }
     }
 
+    // Operation code: 2
     @Override
     public Album getAlbumById(int id) {
         String sql = "SELECT * FROM album WHERE id = " + id;
@@ -108,8 +110,9 @@ public class DatabaseServer implements Database {
         return flag;
     }
 
+    // Operation code: 3
     @Override
-    public int addSinger(Singer singer) {
+    public Integer addSinger(Singer singer) {
         String sql;
         if (singer.getId() != null) {
             sql = "INSERT INTO singer (id, name) " +
@@ -122,6 +125,7 @@ public class DatabaseServer implements Database {
         return execAdd(sql);
     }
 
+    // Operation code: 4
     @Override
     public boolean deleteSingerById(int id) {
         String sql = "DELETE FROM singer " +
@@ -129,8 +133,9 @@ public class DatabaseServer implements Database {
         return execUpdateDelete(sql);
     }
 
+    // Operation code: 5
     @Override
-    public int addAlbum(int singerId, Album album) {
+    public Integer addAlbum(int singerId, Album album) {
         String sql;
         if (album.getId() != null) {
             sql = "INSERT INTO album (id, singer_id, name, year, genre) " +
@@ -146,6 +151,7 @@ public class DatabaseServer implements Database {
         return execAdd(sql);
     }
 
+    // Operation code: 6
     @Override
     public boolean deleteAlbumById(int id) {
         String sql = "DELETE FROM album " +
@@ -153,6 +159,7 @@ public class DatabaseServer implements Database {
         return execUpdateDelete(sql);
     }
 
+    // Operation code: 7
     @Override
     public boolean updateSinger(Singer singer) {
         String sql = "UPDATE singer SET name = '" + singer.getName() +
@@ -160,6 +167,7 @@ public class DatabaseServer implements Database {
         return execUpdateDelete(sql);
     }
 
+    // Operation code: 8
     @Override
     public boolean updateAlbum(Album album) {
         String sql = "UPDATE album SET name = '" + album.getName() + "', year = " +
@@ -168,6 +176,7 @@ public class DatabaseServer implements Database {
         return execUpdateDelete(sql);
     }
 
+    // Operation code: 9
     @Override
     public Integer countAlbumsOfSingerById(int id) {
         Collection collection = getAlbumsOfSingerById(id);

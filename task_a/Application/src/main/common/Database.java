@@ -18,7 +18,7 @@ public interface Database {
 
     // 1
     // Operation code: 5
-    int addSinger(Singer singer);
+    Integer addSinger(Singer singer);
 
     // 2
     // Operation code: 6
@@ -26,7 +26,7 @@ public interface Database {
 
     // 3
     // Operation code: 7
-    int addAlbum(int singerId, Album album);
+    Integer addAlbum(int singerId, Album album);
 
     // 4
     // Operation code: 8
