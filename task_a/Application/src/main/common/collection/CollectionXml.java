@@ -5,9 +5,8 @@ import main.common.Singer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -95,7 +94,7 @@ public class CollectionXml {
         return sw.toString();
     }
 
-    public void toXmlFile(File xmlFile) {
+    public boolean toXmlFile(File xmlFile) {
         try {
             String str = toXmlString();
             TransformerFactory factory = TransformerFactory.newInstance();
@@ -105,24 +104,16 @@ public class CollectionXml {
             transformer.transform(strSource, fileResult);
         } catch (TransformerException e) {
             e.printStackTrace();
+            return false;
         }
+        return true;
     }
 
-    public void fromXmlFile(File xmlFile) {
+    public boolean fromXmlDocument(Document doc) {
         collection.clear();
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        Document doc = null;
-        try {
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            doc = db.parse(xmlFile);
-        } catch (ParserConfigurationException | SAXException | IOException e) {
-            e.printStackTrace();
-        }
-        assert doc != null;
-
         Element collectionElem = doc.getDocumentElement();
         if (!collectionElem.getTagName().equals("collection")) {
-            throw new RuntimeException();
+            return false;
         }
         NodeList singesList = collectionElem.getElementsByTagName("singer");
         for (int i=0; i<singesList.getLength(); i++) {
@@ -142,6 +133,34 @@ public class CollectionXml {
                 collection.addAlbum(album);
             }
         }
+        return true;
+    }
+
+    public boolean fromXmlString(String xmlString) {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        Document doc;
+        try {
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            InputSource is = new InputSource(new StringReader(xmlString));
+            doc = db.parse(is);
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return fromXmlDocument(doc);
+    }
+
+    public boolean fromXmlFile(File xmlFile) {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        Document doc;
+        try {
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            doc = db.parse(xmlFile);
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return fromXmlDocument(doc);
     }
 
     @Override
