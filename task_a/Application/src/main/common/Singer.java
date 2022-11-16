@@ -20,4 +20,8 @@ public class Singer {
     public void setName(String name) {
         this.name = name;
     }
+
+    public String toString(char sep) {
+        return id + sep + name;
+    }
 }

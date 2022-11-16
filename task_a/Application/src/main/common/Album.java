@@ -46,4 +46,8 @@ public class Album {
     public void setGenre(String genre) {
         this.genre = genre;
     }
+
+    public String toString(char sep) {
+        return id + sep + singer.getId() + sep + name + sep + year + sep + genre;
+    }
 }
