@@ -21,6 +21,7 @@ public class ServerMain {
                 new Thread(new RequestHandler(socket, db)).start();
             }
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
@@ -32,6 +33,7 @@ public class ServerMain {
             new ServerMain(connection).start(6666);
             connection.close();
         } catch (SQLException | IOException e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
