@@ -1,5 +1,7 @@
 package main.common;
 
+import main.common.collection.Collection;
+
 public interface Database {
 
     boolean clear();
