@@ -1,12 +1,13 @@
 package main.common;
 
+import java.util.Objects;
+
 public class Album {
     private final Integer id;
     private final Singer singer;
     private String name;
     private Integer year; // released
     private String genre;
-    private char sep;
 
     public Album(Integer id, Singer singer, String name, Integer year, String genre) {
         this.id = id;
@@ -14,19 +15,6 @@ public class Album {
         this.name = name;
         this.year = year;
         this.genre = genre;
-        this.sep = '#';
-    }
-
-    public Album(Singer singer, String[] params) throws IllegalArgumentException {
-        if (params.length != 4) {
-            throw new IllegalArgumentException();
-        }
-        this.id = Integer.parseInt(params[0]);
-        this.singer = singer;
-        this.name = params[1];
-        this.year = Integer.parseInt(params[2]);
-        this.genre = params[3];
-        this.sep = '#';
     }
 
     public Integer getId() {
@@ -61,21 +49,23 @@ public class Album {
         this.genre = genre;
     }
 
-    public char getSep() {
-        return sep;
-    }
-
-    public void setSep(char sep) {
-        this.sep = sep;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Album album)) {
+            return false;
+        }
+        return Objects.equals(id, album.id)
+                && Objects.equals(singer, album.singer)
+                && Objects.equals(name, album.name)
+                && Objects.equals(year, album.year)
+                && Objects.equals(genre, album.genre);
     }
 
     @Override
-    public String toString() {
-        String idStr = String.valueOf(id);
-        String singerIdStr = String.valueOf(singer.getId());
-        String nameStr = String.valueOf(name);
-        String yearStr = String.valueOf(year);
-        String genreStr = String.valueOf(genre);
-        return idStr + sep + singerIdStr + sep + nameStr + sep + yearStr + sep + genreStr;
+    public int hashCode() {
+        return Objects.hash(id, singer, name, year, genre);
     }
 }

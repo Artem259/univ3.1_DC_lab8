@@ -1,23 +1,14 @@
 package main.common;
 
+import java.util.Objects;
+
 public class Singer {
     private final Integer id;
     private String name;
-    private char sep;
 
     public Singer(Integer id, String name) {
         this.id = id;
         this.name = name;
-        this.sep = '#';
-    }
-
-    public Singer(String[] params) throws IllegalArgumentException {
-        if (params.length != 2) {
-            throw new IllegalArgumentException();
-        }
-        this.id = Integer.parseInt(params[0]);
-        this.name = params[1];
-        this.sep = '#';
     }
 
     public Integer getId() {
@@ -32,18 +23,19 @@ public class Singer {
         this.name = name;
     }
 
-    public char getSep() {
-        return sep;
-    }
-
-    public void setSep(char sep) {
-        this.sep = sep;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Singer singer)) {
+            return false;
+        }
+        return Objects.equals(id, singer.id) && Objects.equals(name, singer.name);
     }
 
     @Override
-    public String toString() {
-        String idStr = String.valueOf(id);
-        String nameStr = String.valueOf(name);
-        return idStr + sep + nameStr;
+    public int hashCode() {
+        return Objects.hash(id, name);
     }
 }
