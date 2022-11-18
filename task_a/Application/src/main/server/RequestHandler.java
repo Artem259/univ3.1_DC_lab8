@@ -44,8 +44,17 @@ public class RequestHandler implements Runnable {
         }
         try {
             int id = Integer.parseInt(fields[0]);
-            responseMessage = String.valueOf(db.getSingerById(id));
-        } catch (NumberFormatException e) {
+            Singer singer = db.getSingerById(id);
+            CollectionXml collectionXml;
+            if (singer == null) {
+                collectionXml = null;
+            }
+            else {
+                collectionXml = new CollectionXml();
+                collectionXml.getCollection().addSinger(singer);
+            }
+            responseMessage = String.valueOf(collectionXml);
+        } catch (Exception e) {
             responseCode = 3;
         }
     }
@@ -57,8 +66,18 @@ public class RequestHandler implements Runnable {
         }
         try {
             int id = Integer.parseInt(fields[0]);
-            responseMessage = String.valueOf(db.getAlbumById(id));
-        } catch (NumberFormatException e) {
+            Album album = db.getAlbumById(id);
+            CollectionXml collectionXml;
+            if (album == null) {
+                collectionXml = null;
+            }
+            else {
+                collectionXml = new CollectionXml();
+                collectionXml.getCollection().addSinger(album.getSinger());
+                collectionXml.getCollection().addAlbum(album);
+            }
+            responseMessage = String.valueOf(collectionXml);
+        } catch (Exception e) {
             responseCode = 3;
         }
     }
@@ -76,21 +95,27 @@ public class RequestHandler implements Runnable {
             }
             boolean res = db.addCollection(collectionXml.getCollection());
             responseMessage = String.valueOf(res);
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             responseCode = 3;
         }
     }
 
     private void addSingerRequest() {
+        if (fields.length != 1) {
+            responseCode = 1;
+            return;
+        }
         try {
-            Singer singer = new Singer(fields);
-            Integer res = db.addSinger(singer);
-            responseMessage = String.valueOf(res);
-        } catch (IllegalArgumentException e) {
-            if (fields.length != 2) {
-                responseCode = 1;
+            CollectionXml collectionXml = new CollectionXml();
+            if (!collectionXml.fromXmlString(fields[0])) {
+                responseCode = 3;
                 return;
             }
+            Singer singer = collectionXml.getCollection().getSingersCopy().get(0);
+            Integer res = db.addSinger(singer);
+            responseMessage = String.valueOf(res);
+        } catch (Exception e) {
+            e.printStackTrace();
             responseCode = 3;
         }
     }
@@ -104,22 +129,28 @@ public class RequestHandler implements Runnable {
             int id = Integer.parseInt(fields[0]);
             boolean res = db.deleteSingerById(id);
             responseMessage = String.valueOf(res);
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             responseCode = 3;
         }
     }
 
     private void addAlbumRequest() {
+        if (fields.length != 1) {
+            responseCode = 1;
+            return;
+        }
         try {
-            int singerId = Integer.parseInt(fields[0]);
-            Album album = new Album(null, Arrays.copyOfRange(fields, 1, fields.length));
-            Integer res = db.addAlbum(singerId, album);
-            responseMessage = String.valueOf(res);
-        } catch (IllegalArgumentException e) {
-            if (fields.length != 5) {
-                responseCode = 1;
+            CollectionXml collectionXml = new CollectionXml();
+            if (!collectionXml.fromXmlString(fields[0])) {
+                responseCode = 3;
                 return;
             }
+            Singer singer = collectionXml.getCollection().getSingersCopy().get(0);
+            Album album = collectionXml.getCollection().getAlbumsCopy().get(0);
+            Integer res = db.addAlbum(singer.getId(), album);
+            responseMessage = String.valueOf(res);
+        } catch (Exception e) {
+            e.printStackTrace();
             responseCode = 3;
         }
     }
@@ -133,35 +164,47 @@ public class RequestHandler implements Runnable {
             int id = Integer.parseInt(fields[0]);
             boolean res = db.deleteAlbumById(id);
             responseMessage = String.valueOf(res);
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             responseCode = 3;
         }
     }
 
     private void updateSingerRequest() {
+        if (fields.length != 1) {
+            responseCode = 1;
+            return;
+        }
         try {
-            Singer singer = new Singer(fields);
-            boolean res = db.updateSinger(singer);
-            responseMessage = String.valueOf(res);
-        } catch (IllegalArgumentException e) {
-            if (fields.length != 2) {
-                responseCode = 1;
+            CollectionXml collectionXml = new CollectionXml();
+            if (!collectionXml.fromXmlString(fields[0])) {
+                responseCode = 3;
                 return;
             }
+            Singer singer = collectionXml.getCollection().getSingersCopy().get(0);
+            boolean res = db.updateSinger(singer);
+            responseMessage = String.valueOf(res);
+        } catch (Exception e) {
+            e.printStackTrace();
             responseCode = 3;
         }
     }
 
     private void updateAlbumRequest() {
+        if (fields.length != 1) {
+            responseCode = 1;
+            return;
+        }
         try {
-            Album album = new Album(null, fields);
-            boolean res = db.updateAlbum(album);
-            responseMessage = String.valueOf(res);
-        } catch (IllegalArgumentException e) {
-            if (fields.length != 4) {
-                responseCode = 1;
+            CollectionXml collectionXml = new CollectionXml();
+            if (!collectionXml.fromXmlString(fields[0])) {
+                responseCode = 3;
                 return;
             }
+            Album album = collectionXml.getCollection().getAlbumsCopy().get(0);
+            boolean res = db.updateAlbum(album);
+            responseMessage = String.valueOf(res);
+        } catch (Exception e) {
+            e.printStackTrace();
             responseCode = 3;
         }
     }
@@ -175,7 +218,7 @@ public class RequestHandler implements Runnable {
             int id = Integer.parseInt(fields[0]);
             Integer res = db.countAlbumsOfSingerById(id);
             responseMessage = String.valueOf(res);
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             responseCode = 3;
         }
     }
@@ -200,7 +243,7 @@ public class RequestHandler implements Runnable {
             Collection collection = db.getAlbumsOfSingerById(id);
             CollectionXml collectionXml = new CollectionXml(collection);
             responseMessage = String.valueOf(collectionXml);
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             responseCode = 3;
         }
     }
@@ -229,26 +272,27 @@ public class RequestHandler implements Runnable {
                 if (message == null) {
                     break;
                 }
+                System.out.println(message);
                 fields = message.split(String.valueOf(sep));
                 int requestCode = Integer.parseInt(fields[0]);
                 fields = Arrays.copyOfRange(fields, 1, fields.length);
 
                 switch (requestCode) {
-                    case 1: clearRequest();
-                    case 2: getSingerByIdRequest();
-                    case 3: getAlbumByIdRequest();
-                    case 4: addCollectionRequest();
-                    case 5: addSingerRequest();
-                    case 6: deleteSingerByIdRequest();
-                    case 7: addAlbumRequest();
-                    case 8: deleteAlbumByIdRequest();
-                    case 9: updateSingerRequest();
-                    case 10: updateAlbumRequest();
-                    case 11: countAlbumsOfSingerByIdRequest();
-                    case 12: getAllRequest();
-                    case 13: getAlbumsOfSingerByIdRequest();
-                    case 14: getAllSingersRequest();
-                    default: badRequest();
+                    case 1 -> clearRequest();
+                    case 2 -> getSingerByIdRequest();
+                    case 3 -> getAlbumByIdRequest();
+                    case 4 -> addCollectionRequest();
+                    case 5 -> addSingerRequest();
+                    case 6 -> deleteSingerByIdRequest();
+                    case 7 -> addAlbumRequest();
+                    case 8 -> deleteAlbumByIdRequest();
+                    case 9 -> updateSingerRequest();
+                    case 10 -> updateAlbumRequest();
+                    case 11 -> countAlbumsOfSingerByIdRequest();
+                    case 12 -> getAllRequest();
+                    case 13 -> getAlbumsOfSingerByIdRequest();
+                    case 14 -> getAllSingersRequest();
+                    default -> badRequest();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -256,7 +300,9 @@ public class RequestHandler implements Runnable {
             } catch (NumberFormatException e) {
                 responseCode = 3;
             }
-            out.println(responseCode + sep + responseMessage);
+            System.out.println(responseCode.toString() + sep + responseMessage + "\n");
+            out.println(responseCode.toString() + sep + responseMessage);
         }
+        System.out.println("> CLOSED <\n");
     }
 }
