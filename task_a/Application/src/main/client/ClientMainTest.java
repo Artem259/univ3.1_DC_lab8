@@ -50,10 +50,14 @@ public class ClientMainTest {
     public void fillDatabase(Collection collection) {
         db.clear();
         for (Singer singer : collection.getSingersCopy()) {
-            db.addSinger(singer);
+            if (!Objects.equals(db.addSinger(singer), singer.getId())) {
+                throw new RuntimeException();
+            }
         }
         for (Album album : collection.getAlbumsCopy()) {
-            db.addAlbum(album.getSinger().getId(), album);
+            if (!Objects.equals(db.addAlbum(album.getSinger().getId(), album), album.getId())) {
+                throw new RuntimeException();
+            }
         }
     }
 
