@@ -1,22 +1,23 @@
 package main.client;
 
-import main.common.*;
+import main.common.Album;
+import main.common.Database;
+import main.common.Singer;
 import main.common.collection.Collection;
 import main.common.collection.CollectionXml;
 
-import java.io.*;
-import java.net.Socket;
+import java.io.File;
 import java.util.Objects;
 
-public class ClientMainTest {
+public class ClientTest {
     private final Collection collection;
     private final File xmlFile;
-    private DatabaseClient db;
+    private final Database db;
 
-    public ClientMainTest() {
+    public ClientTest(Database db) {
         this.collection = new Collection();
         this.xmlFile = new File("src/main/client/files", "xml_file.xml");
-        this.db = null;
+        this.db = db;
     }
 
     public void addSinger(String name) {
@@ -48,7 +49,9 @@ public class ClientMainTest {
     }
 
     public void fillDatabase(Collection collection) {
-        db.clear();
+        if (!db.clear()) {
+            throw new RuntimeException();
+        }
         for (Singer singer : collection.getSingersCopy()) {
             if (!Objects.equals(db.addSinger(singer), singer.getId())) {
                 throw new RuntimeException();
@@ -84,16 +87,24 @@ public class ClientMainTest {
         // ----------------------------------
 
         collection.addSinger(singer);
-        db.addSinger(singer);
+        if (!Objects.equals(db.addSinger(singer), singer.getId())) {
+            throw new RuntimeException();
+        }
 
         collection.deleteAlbumById(1);
-        db.deleteAlbumById(1);
+        if (!db.deleteAlbumById(1)) {
+            throw new RuntimeException();
+        }
 
         collection.deleteSingerById(2);
-        db.deleteSingerById(2);
+        if (!db.deleteSingerById(2)) {
+            throw new RuntimeException();
+        }
 
         collection.addAlbum(album);
-        db.addAlbum(singer.getId(), album);
+        if (!Objects.equals(db.addAlbum(singer.getId(), album), album.getId())) {
+            throw new RuntimeException();
+        }
 
         // ----------------------------------
 
@@ -141,25 +152,12 @@ public class ClientMainTest {
         }
     }
 
-    public void start(String ip, int port) {
-        try (Socket socket = new Socket(ip, port)) {
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            this.db = new DatabaseClient(in, out);
+    public void start() {
+        refill();
+        printCollection();
+        test1();
 
-            refill();
-            printCollection();
-            test1();
-
-            refill();
-            test2();
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static void main(String[] args) {
-        new ClientMainTest().start("localhost", 6666);
+        refill();
+        test2();
     }
 }
