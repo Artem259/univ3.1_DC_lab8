@@ -41,7 +41,6 @@ public class ServerMain {
             String url = "Jdbc:mysql://localhost:3306/store";
             Connection connection = DriverManager.getConnection(url, "root", "mypassword");
             new ServerMain(connection).start("localhost", "to_server", "to_client");
-            connection.close();
         } catch (SQLException | IOException | TimeoutException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
